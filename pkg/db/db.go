@@ -40,7 +40,7 @@ type File struct {
 // New will initialize a filesystem by creating DB and calling InitializeDB.
 // Callers should ensure "github.com/mattn/go-sqlite3" is imported in some way
 // before calling this so the sqlite3 driver is available.
-func New(name string) (fs *FileSystem, err error) {
+func New(name string, dump bool) (fs *FileSystem, err error) {
 	fs = new(FileSystem)
 	if name == "" {
 		err = errors.New("database must have name")
@@ -52,7 +52,7 @@ func New(name string) (fs *FileSystem, err error) {
 	if err != nil {
 		return
 	}
-	err = fs.InitializeDB(true)
+	err = fs.InitializeDB(dump)
 	if err != nil {
 		err = errors.Wrap(err, "could not initialize")
 		return

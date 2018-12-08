@@ -96,8 +96,8 @@ func templateAssets(s []string, t *template.Template) error {
 	return nil
 }
 
-func (rwt *RWTxt) Serve() (err error) {
-	go func() {
+func (rwt *RWTxt) Serve(dump bool) (err error) {
+	go func(dump bool) {
 		lastDumped := time.Now()
 		for {
 			time.Sleep(120 * time.Second)
@@ -106,19 +106,23 @@ func (rwt *RWTxt) Serve() (err error) {
 				panic(errGet)
 			}
 			if time.Since(lastModified).Seconds() > 3 && time.Since(lastDumped).Seconds() > 10 {
-				log.Debug("dumping")
+				log.Debug("delete old keys")
 				errDelete := rwt.fs.DeleteOldKeys()
 				if errDelete != nil {
 					log.Error(errDelete)
 				}
-				errDump := rwt.fs.DumpSQL()
-				if errDump != nil {
-					log.Error(errDump)
+				if dump {
+					log.Debug("dumping")
+					errDump := rwt.fs.DumpSQL()
+					if errDump != nil {
+						log.Error(errDump)
+					}
+					lastDumped = time.Now()
+
 				}
-				lastDumped = time.Now()
 			}
 		}
-	}()
+	}(dump)
 	log.Infof("listening on %v", rwt.Bind)
 	http.HandleFunc("/", rwt.Handler)
 	return http.ListenAndServe(rwt.Bind, nil)

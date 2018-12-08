@@ -1,6 +1,7 @@
 module github.com/schollz/rwtxt
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/DavidBelicza/TextRank v2.1.1+incompatible
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/dustin/go-humanize v0.0.0-20180713052910-9f541cc9db5d // indirect
