@@ -14,6 +14,16 @@ import (
 	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
 
+func Slugify(in string) string {
+	lines := strings.Split(in, "\n")
+	if len(lines) < 1 {
+		return ""
+	}
+	line := strings.TrimSpace(lines[0])
+	line = strings.ToLower(line)
+	line = strings.Replace(line, " ", "-", -1)
+	return line
+}
 func RenderMarkdownToHTML(markdown string) template.HTML {
 	html := string(blackfriday.Run([]byte(markdown),
 		blackfriday.WithExtensions(

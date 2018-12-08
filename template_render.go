@@ -19,7 +19,7 @@ import (
 	"github.com/schollz/rwtxt/pkg/utils"
 )
 
-const introText = "This note is empty. Click to edit it."
+const IntroText = "This note is empty. Click to edit it."
 
 var languageCSS map[string]string
 
@@ -334,7 +334,7 @@ func (tr *TemplateRender) handleWebsocket(w http.ResponseWriter, r *http.Request
 			}
 			break
 		}
-		// log.Debugf("recv: %v", p)
+		log.Debugf("recv: %v", p)
 
 		if !domainChecked {
 			domainChecked = true
@@ -354,7 +354,7 @@ func (tr *TemplateRender) handleWebsocket(w http.ResponseWriter, r *http.Request
 				p.Domain = "public"
 			}
 			data := strings.TrimSpace(p.Data)
-			if data == introText {
+			if data == IntroText {
 				data = ""
 			}
 			editFile = db.File{
@@ -465,7 +465,7 @@ func (tr *TemplateRender) handleViewEdit(w http.ResponseWriter, r *http.Request)
 
 	initialMarkdown += "\n\n" + f.Data
 	// if f.Data == "" {
-	// 	f.Data = introText
+	// 	f.Data = IntroText
 	// }
 	// update the view count
 	go func() {
@@ -487,7 +487,7 @@ func (tr *TemplateRender) handleViewEdit(w http.ResponseWriter, r *http.Request)
 	tr.Title = slug + " | " + domain
 
 	tr.Rendered = utils.RenderMarkdownToHTML(initialMarkdown)
-	tr.IntroText = template.JS(introText)
+	tr.IntroText = template.JS(IntroText)
 	tr.Rows = len(strings.Split(string(utils.RenderMarkdownToHTML(initialMarkdown)), "\n")) + 1
 	tr.EditOnly = strings.TrimSpace(f.Data) == ""
 	tr.Languages = utils.DetectMarkdownCodeBlockLanguages(initialMarkdown)

@@ -751,6 +751,27 @@ func (fs *FileSystem) validateDomain(domain, password string) (domainid int, err
 	return
 }
 
+// GetDomainKey returns a domain's key
+func (fs *FileSystem) GetDomainKey(domainID int) (string, error) {
+	log.Debug(domainID)
+	query := "SELECT key from keys WHERE domainid = ?"
+	stmt, err := fs.DB.Prepare(query)
+	if err != nil {
+		err = errors.Wrap(err, "preparing query: "+query)
+		return "", err
+	}
+
+	defer stmt.Close()
+	var result string
+	err = stmt.QueryRow(domainID).Scan(&result)
+	if err != nil {
+		err = errors.Wrap(err, "executing query: "+query)
+		return "", err
+	}
+
+	return result, nil
+}
+
 // GetDomainFromName returns the domain id, throwing an error if it doesn't exist
 func (fs *FileSystem) GetDomainFromName(domain string) (domainid int, ispublic bool, err error) {
 	fs.Lock()

@@ -3,14 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"runtime/pprof"
+	"strings"
 	"time"
 
+	"github.com/schollz/rwtxt/pkg/utils"
+
 	log "github.com/cihub/seelog"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/schollz/rwtxt"
 	"github.com/schollz/rwtxt/pkg/db"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -27,6 +32,7 @@ func main() {
 		database      = flag.String("db", "rwtxt.db", "name of the database")
 		listen        = flag.String("listen", rwtxt.DefaultBind, "interface:port to listen on")
 		private       = flag.Bool("private", false, "private setup (allows listing of public notes)")
+		importfolder  = flag.String("importfolder", "", "recursively import folder containing markdown files")
 	)
 	flag.Parse()
 
@@ -67,6 +73,24 @@ func main() {
 		panic(err)
 	}
 
+	if *importfolder != "" {
+		fileInfos, err := ioutil.ReadDir(*importfolder)
+		if err != nil {
+			panic(err)
+		}
+		for _, finfo := range fileInfos {
+			b, err := ioutil.ReadFile(path.Join(*importfolder, finfo.Name()))
+			if err != nil {
+				panic(err)
+			}
+			err = importMarkdown(fs, "public", finfo.Name(), string(b))
+			if err != nil {
+				panic(err)
+			}
+		}
+		return
+	}
+
 	config := rwtxt.Config{Private: *private}
 
 	rwt, err := rwtxt.New(fs, config)
@@ -81,6 +105,28 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+func importMarkdown(fs *db.FileSystem, domain, filename, content string) error {
+
+	data := strings.TrimSpace(content)
+	if data == rwtxt.IntroText {
+		data = ""
+	}
+
+	editFile := db.File{
+		ID:      utils.UUID(),
+		Slug:    filename,
+		Data:    data,
+		Created: time.Now(),
+		Domain:  domain,
+	}
+	err := fs.Save(editFile)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return nil
 }
 
 // setLogLevel determines the log level
